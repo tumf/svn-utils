@@ -1,25 +1,9 @@
 #!/usr/bin/env ruby
 =begin 
- <branch-name> :  /branches/<branch-name> or trunk
- 1. list branch
- > svnbr 
+ "svnbr" is a Subversion utility to operate branches.
 
- 2. switch <branch-name> after craete /branches/<branch-name>(if missing)
- > svnbr sw <branch-name>
- > svnbr sw <branch-name> --from-tag=VERSION-1.2.3
- 
- 3. delete branch
- > svnbr del <branch-name>
- 
- 4. move branch
- > svnbr mv <old-branch-name> <new-branch-name>
- 
- 5. view log
- > svnbr log <branch-name>
-
- 6. merge
- > svnbr merge <branch-name> -c M[,N...]
- > svnbr merge <branch-name> -r M:N
+ try help:
+ > svnbr help
 =end
 
 require 'rubygems'
@@ -105,9 +89,11 @@ class Branch
     end
   end
   def merge_cs name,cs
+    rootdir
     svn_exec("merge -c #{cs}  " << uri(name),true) 
   end
   def merge_rev name,rev
+    rootdir
     svn_exec("merge -r #{rev}  " << uri(name),true) 
   end
   def svn param
