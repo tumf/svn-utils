@@ -1,0 +1,208 @@
+#!/usr/bin/env ruby
+=begin 
+ <branch-name> :  /branches/<branch-name> or trunk
+ 1. list branch
+ > svnbr 
+
+ 2. switch <branch-name> after craete /branches/<branch-name>(if missing)
+ > svnbr sw <branch-name>
+ > svnbr sw <branch-name> --from-tag=VERSION-1.2.3
+ 
+ 3. delete branch
+ > svnbr del <branch-name>
+ 
+ 4. move branch
+ > svnbr mv <old-branch-name> <new-branch-name>
+ 
+ 5. view log
+ > svnbr log <branch-name>
+
+ 6. merge
+ > svnbr merge <branch-name> -c M[,N...]
+ > svnbr merge <branch-name> -r M:N
+=end
+
+require 'rubygems'
+require 'pp'
+require 'optparse'
+require 'rexml/document'
+
+class Branch
+  def repo var
+    @doc = REXML::Document.new(svn("info --xml")) unless @doc
+    repo = Hash.new
+    repo[:root]=@doc.elements['/info/entry/repository/root'].text
+    repo[:url]=@doc.elements['/info/entry/url'].text
+    repo[var]
+  end
+  def current
+    name(repo(:url))
+  end
+  def list
+    return @branches if @branches
+    
+    @branches = Array.new
+    root = repo(:root)
+    doc = REXML::Document.new(svn("list #{root}/branches --xml"))
+    REXML::XPath.each(doc,'//name/text()') do |name|
+      @branches << name.to_s
+    end
+    @branches << "trunk"
+  end
+  def tags
+    return @tags if @tags
+    @tags = Array.new
+    root = repo(:root)
+    doc = REXML::Document.new(svn("list #{root}/tags --xml"))
+    REXML::XPath.each(doc,'//name/text()') do |name|
+      @tags << name.to_s
+    end
+  end
+  def rm name
+    svn_exec("rm " << uri(name) << " -m 'remove branch #{name}'",true)
+  end
+  def mv(from,to)
+    svn_exec("mv " << uri(from) << " " << uri(to) << " -m 'move branch #{from} #{to}'",true)
+  end
+  def log(name)
+    svn_exec("log " << uri(name) << " --stop-on-copy",true)
+  end
+  def name uri
+    if /^\/trunk\/?/ =~ uri[repo(:root).length..-1]
+      return "trunk"
+    end
+    return uri[repo(:root).length+"/branches/".length..-1]
+  end
+  def uri name
+    if name == "trunk"
+      return repo(:root) << "/trunk"
+    end
+    repo(:root) << "/branches/" << name
+  end
+  def exists? name
+    list.include?(name)
+  end
+  def rootdir
+    while uri(current) != repo(:url)
+      FileUtils.cd('..')
+      @doc = nil
+    end
+  end
+  def switch name,tag = nil
+    from = current 
+    from_uri = uri(current)
+    if tag
+      raise "tag: #{tag} not found." unless tags.include?(tag)
+      from = tag
+      from_uri = repo(:root) << "/tags/" << tag
+    end
+
+    svn_exec("cp -m 'make #{name} branch from #{from}' %s %s" %
+             [from_uri,uri(name)],true) unless exists?(name)
+    unless current == name
+      rootdir
+      svn_exec("sw --ignore-externals " << uri(name),true) 
+    end
+  end
+  def merge_cs name,cs
+    svn_exec("merge -c #{cs}  " << uri(name),true) 
+  end
+  def merge_rev name,rev
+    svn_exec("merge -r #{rev}  " << uri(name),true) 
+  end
+  def svn param
+    `svn #{param}`
+  end
+  def svn_exec param,show = false
+    puts "svn #{param}" if show
+    system("svn #{param}")
+  end
+end
+opt = OptionParser.new
+
+br = Branch.new
+
+cmd = ARGV.shift
+if cmd == "sw" or cmd == "switch"
+  tag = nil
+  opt.on('--from-tag=VAL') { |v| tag = v }
+  opt.parse!
+  
+  name = ARGV.shift
+  br.switch(name,tag)
+end
+
+if cmd == "mv" 
+  from = ARGV.shift
+  to  = ARGV.shift
+  br.mv(from,to)
+end
+
+if cmd == "rm" or cmd == "del"
+  name = ARGV.shift
+  br.rm(name)
+end
+
+if cmd == "log"
+  name = ARGV.shift
+  name = br.current unless name
+  br.log(name)
+end
+
+if cmd == "tags"
+  br.tags.each do |i|
+    puts i
+  end
+end
+
+if cmd == "merge"
+  opt.on('-r=VAL') do |rev| 
+    name = ARGV.shift
+    br.merge_rev(name,rev) 
+  end
+  opt.on('-c=VAL') do |cs| 
+    name = ARGV.shift
+    br.merge_cs(name,cs) 
+  end
+  opt.parse!
+
+end
+
+if !cmd or cmd == "list"
+  br.list.each do |i|
+    if i == br.current
+      puts "*" << i
+    else
+      puts i
+    end
+  end
+end
+
+if cmd == "help"
+  puts <<EOF
+Usage: svnbr <subcommand> [<option>] [<args>]
+
+ <branch-name> :  /branches/<branch-name> or trunk
+
+ 1. list branch
+ > svnbr 
+
+ 2. switch <branch-name> after craete /branches/<branch-name>(if missing)
+ > svnbr sw <branch-name>
+ > svnbr sw <branch-name> --from-tag=VERSION-1.2.3
+ 
+ 3. delete branch
+ > svnbr del <branch-name>
+ 
+ 4. move branch
+ > svnbr mv <old-branch-name> <new-branch-name>
+ 
+ 5. view log
+ > svnbr log <branch-name>
+
+ 6. merge
+ > svnbr merge <branch-name> -c M[,N...]
+ > svnbr merge <branch-name> -r M:N
+EOF
+end
+
