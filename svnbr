@@ -46,7 +46,7 @@ class Branch
     svn_exec("rm " << uri(name) << " -m 'remove branch #{name}'",true)
   end
   def mv(from,to)
-    svn_exec("mv " << uri(from) << " " << uri(to) << " -m 'move branch #{from} #{to}'",true)
+    svn_exec("mv " << uri(from) << " " << uri(to) << " -m 'move branch #{from} to #{to}'",true)
   end
   def log(name)
     svn_exec("log " << uri(name) << " --stop-on-copy",true)
