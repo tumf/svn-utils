@@ -27,7 +27,7 @@ class Branch
     
     @branches = Array.new
     root = repo(:root)
-    doc = REXML::Document.new(svn("list #{root}/branches --xml"))
+    doc = REXML::Document.new(svn("list #{root}/branches --xml")) 
     REXML::XPath.each(doc,'//name/text()') do |name|
       @branches << name.to_s
     end
@@ -97,7 +97,9 @@ class Branch
     svn_exec("merge -r #{rev}  " << uri(name),true) 
   end
   def svn param
-    `svn #{param}`
+    r = `svn #{param}`
+    raise if $?.to_i > 0
+    r
   end
   def svn_exec param,show = false
     puts "svn #{param}" if show
@@ -142,16 +144,13 @@ if cmd == "tags"
 end
 
 if cmd == "merge"
-  opt.on('-r=VAL') do |rev| 
-    name = ARGV.shift
-    br.merge_rev(name,rev) 
-  end
-  opt.on('-c=VAL') do |cs| 
-    name = ARGV.shift
-    br.merge_cs(name,cs) 
-  end
+  mode = nil;r=nil;
+  opt.on('-r=VAL') { |v| r = v ; mode = "r" }
+  opt.on('-c=VAL') { |v| r = v ; mode = "c" }
   opt.parse!
-
+  name = ARGV.shift
+  br.merge_rev(name,r) if mode == "r"
+  br.merge_cs(name,r)  if mode == "c"
 end
 
 if !cmd or cmd == "list"
