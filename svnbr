@@ -156,7 +156,7 @@ end
 if !cmd or cmd == "list"
   br.list.each do |i|
     if i == br.current
-      puts "*" << i
+      puts "* " << i
     else
       puts i
     end
