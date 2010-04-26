@@ -96,6 +96,12 @@ class Branch
     rootdir
     svn_exec("merge -r #{rev}  " << uri(name),true) 
   end
+  def diff name,file
+    rootdir
+    svn_exec("diff %s %s" % [uri(current),uri(name)],true) 
+  end
+
+
   def svn param
     r = `svn #{param}`
     raise if $?.to_i > 0
@@ -135,6 +141,12 @@ if cmd == "log"
   name = ARGV.shift
   name = br.current unless name
   br.log(name)
+end
+
+if cmd == "diff"
+  name = ARGV.shift
+  file = ARGV.shift
+  br.diff(name,file)
 end
 
 if cmd == "tags"
@@ -188,6 +200,9 @@ Usage: svnbr <subcommand> [<option>] [<args>]
  6. merge
  > svnbr merge <branch-name> -c M[,N...]
  > svnbr merge <branch-name> -r M:N
+
+ 7. diff
+ > svnbr diff <branch-name> <file>
 EOF
 end
 
