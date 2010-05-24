@@ -55,13 +55,18 @@ class Branch
     if /^\/trunk\/?/ =~ uri[repo(:root).length..-1]
       return "trunk"
     end
-    return uri[repo(:root).length+"/branches/".length..-1]
+    return uri.gsub(repo(:root)+"/","").gsub(/(branches|tags)\//,"")
   end
   def uri name
     if name == "trunk"
       return repo(:root) << "/trunk"
     end
-    repo(:root) << "/branches/" << name
+    if list.include?(name)
+      return repo(:root) << "/branches/" << name
+    end
+    if tags.include?(name)
+      return repo(:root) << "/tags/" << name
+    end
   end
   def exists? name
     list.include?(name)
