@@ -58,6 +58,7 @@ class Branch
     return uri.gsub(repo(:root)+"/","").gsub(/(branches|tags)\//,"")
   end
   def uri name
+    # existing url
     if name == "trunk"
       return repo(:root) << "/trunk"
     end
@@ -67,9 +68,11 @@ class Branch
     if tags.include?(name)
       return repo(:root) << "/tags/" << name
     end
+    # non-existing url
+    repo(:root) << "/branches/" << name
   end
   def exists? name
-    list.include?(name)
+    list.include?(name) || tags.include?(name)
   end
   def rootdir
     while uri(current) != repo(:url)
@@ -185,12 +188,14 @@ if cmd == "help"
 Usage: svnbr <subcommand> [<option>] [<args>]
 
  <branch-name> :  /branches/<branch-name> or trunk
+ <tag-name> : /tags/<tag-name>
 
  1. list branch
  > svnbr 
 
- 2. switch <branch-name> after craete /branches/<branch-name>(if missing)
+ 2. switch <branch-name> or <tag-name> after craete /branches/<branch-name>(if missing)
  > svnbr sw <branch-name>
+ > svnbr sw <tag-name>
  > svnbr sw <branch-name> --from-tag=VERSION-1.2.3
  
  3. delete branch
