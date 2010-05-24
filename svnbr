@@ -16,7 +16,7 @@ class Branch
     @doc = REXML::Document.new(svn("info --xml")) unless @doc
     repo = Hash.new
     repo[:url]=@doc.elements['/info/entry/url'].text
-    repo[:root]=repo[:url].gsub(/(\/trunk$|\/branches\/.+$)/,'')
+    repo[:root]=repo[:url].gsub(/(\/trunk$|\/branches\/.+$|\/tags\/.+$)/,'')
     repo[var]
   end
   def current
