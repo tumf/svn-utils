@@ -80,13 +80,13 @@ class Branch
       @doc = nil
     end
   end
-  def switch name,tag = nil
+  def switch name,tag_name = nil
     from = current 
     from_uri = uri(current)
-    if tag
-      raise "tag: #{tag} not found." unless tags.include?(tag)
-      from = tag
-      from_uri = repo(:root) << "/tags/" << tag
+    if tag_name
+      raise "tag_name: #{tag_name} not found." unless tags.include?(tag_name)
+      from = tag_name
+      from_uri = repo(:root) << "/tags/" << tag_name
     end
 
     svn_exec("cp -m 'make #{name} branch from #{from}' %s %s" %
@@ -95,6 +95,16 @@ class Branch
       rootdir
       svn_exec("sw --ignore-externals " << uri(name),true) 
     end
+  end
+  def tag name
+    return if exists?(name)
+    
+    from_name = current 
+    from_uri = uri(current)
+    tag_name = name
+    tag_uri = repo(:root) << "/tags/" << tag_name
+    svn_exec("cp -m 'make #{tag_name} tag from #{from_name}' %s %s" %
+             [from_uri,tag_uri],true)
   end
   def merge_cs name,cs
     rootdir
@@ -132,6 +142,11 @@ if cmd == "sw" or cmd == "switch"
   
   name = ARGV.shift
   br.switch(name,tag)
+end
+
+if cmd == "tag"
+  name = ARGV.shift
+  br.tag(name)
 end
 
 if cmd == "mv" 
@@ -198,20 +213,26 @@ Usage: svnbr <subcommand> [<option>] [<args>]
  > svnbr sw <tag-name>
  > svnbr sw <branch-name> --from-tag=VERSION-1.2.3
  
- 3. delete branch
- > svnbr del <branch-name>
+ 3. create /tags/<tag-name>(if missing)
+ > svnbr tag <tag-name>
  
- 4. move branch
+ 4. delete branch,tag
+ > svnbr del <branch-name>
+ > svnbr rm <branch-name>
+ > svnbr del <tag-name>
+ > svnbr rm <tag-name>
+ 
+ 5. move branch
  > svnbr mv <old-branch-name> <new-branch-name>
  
- 5. view log
+ 6. view log
  > svnbr log <branch-name>
 
- 6. merge
+ 7. merge
  > svnbr merge <branch-name> -c M[,N...]
  > svnbr merge <branch-name> -r M:N
 
- 7. diff
+ 8. diff
  > svnbr diff <branch-name> <file>
 EOF
 end
