@@ -84,7 +84,7 @@ class Branch
     from = current
     from_uri = uri(current)
     if tag_name
-      raise "tag_name: #{tag_name} not found." unless tags.include?(tag_name)
+      raise "tag_name: '#{tag_name}' not found." unless tags.include?(tag_name)
       from = tag_name
       from_uri = repo(:root) << "/tags/" << tag_name
     end
@@ -199,41 +199,41 @@ if !cmd or cmd == "list"
 end
 
 if cmd == "help"
-  puts <<EOF
+  i = 0
+  puts <<EOF.gsub(/^(\s*)%(?=\.)/m) { $1 + (i+=1).to_s }
 Usage: svnbr <subcommand> [<option>] [<args>]
 
  <branch-name> :  /branches/<branch-name> or trunk
- <tag-name> : /tags/<tag-name>
+ <tag-name>    :  /tags/<tag-name>
 
- 1. list branch
- > svnbr
+ %. list branches
+ > svnbr [list]
 
- 2. switch <branch-name> or <tag-name> after craete /branches/<branch-name>(if missing)
- > svnbr sw <branch-name>
+ %. list tags
+ > svnbr tags
+
+ %. switch to branch or tag after craete /branches/<branch-name> (if missing)
+ > svnbr sw <branch-name> [--from-tag=<tag-name>]
  > svnbr sw <tag-name>
- > svnbr sw <branch-name> --from-tag=VERSION-1.2.3
 
- 3. create /tags/<tag-name>(if missing)
+ %. create /tags/<tag-name>
  > svnbr tag <tag-name>
 
- 4. delete branch,tag
- > svnbr del <branch-name>
- > svnbr rm <branch-name>
- > svnbr del <tag-name>
- > svnbr rm <tag-name>
+ %. delete branch or tag
+ > svnbr (del | rm) (<branch-name> | <tag-name>)
 
- 5. move branch
+ %. move branch
  > svnbr mv <old-branch-name> <new-branch-name>
 
- 6. view log
- > svnbr log <branch-name>
+ %. view log
+ > svnbr log [<branch-name> | <tag-name>]
 
- 7. merge
- > svnbr merge <branch-name> -c M[,N...]
- > svnbr merge <branch-name> -r M:N
+ %. merge
+ > svnbr merge (<branch-name> | <tag-name>) -c M[,N...]
+ > svnbr merge (<branch-name> | <tag-name>) -r M:N
 
- 8. diff
- > svnbr diff <branch-name> <file>
+ %. diff
+ > svnbr diff (<branch-name> | <tag-name>) <file>
 EOF
 end
 
