@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-=begin 
+=begin
  "svnbr" is a Subversion utility to operate branches.
 
  try help:
@@ -24,10 +24,10 @@ class Branch
   end
   def list
     return @branches if @branches
-    
+
     @branches = Array.new
     root = repo(:root)
-    doc = REXML::Document.new(svn("list #{root}/branches --xml")) 
+    doc = REXML::Document.new(svn("list #{root}/branches --xml"))
     REXML::XPath.each(doc,'//name/text()') do |name|
       @branches << name.to_s
     end
@@ -81,7 +81,7 @@ class Branch
     end
   end
   def switch name,tag_name = nil
-    from = current 
+    from = current
     from_uri = uri(current)
     if tag_name
       raise "tag_name: #{tag_name} not found." unless tags.include?(tag_name)
@@ -93,13 +93,13 @@ class Branch
              [from_uri,uri(name)],true) unless exists?(name)
     unless current == name
       rootdir
-      svn_exec("sw --ignore-externals " << uri(name),true) 
+      svn_exec("sw --ignore-externals " << uri(name),true)
     end
   end
   def tag name
     return if exists?(name)
-    
-    from_name = current 
+
+    from_name = current
     from_uri = uri(current)
     tag_name = name
     tag_uri = repo(:root) << "/tags/" << tag_name
@@ -108,15 +108,15 @@ class Branch
   end
   def merge_cs name,cs
     rootdir
-    svn_exec("merge -c #{cs}  " << uri(name),true) 
+    svn_exec("merge -c #{cs}  " << uri(name),true)
   end
   def merge_rev name,rev
     rootdir
-    svn_exec("merge -r #{rev}  " << uri(name),true) 
+    svn_exec("merge -r #{rev}  " << uri(name),true)
   end
   def diff name,file
     rootdir
-    svn_exec("diff %s %s" % [uri(current),uri(name)],true) 
+    svn_exec("diff %s %s" % [uri(current),uri(name)],true)
   end
 
 
@@ -139,7 +139,7 @@ if cmd == "sw" or cmd == "switch"
   tag = nil
   opt.on('--from-tag=VAL') { |v| tag = v }
   opt.parse!
-  
+
   name = ARGV.shift
   br.switch(name,tag)
 end
@@ -149,7 +149,7 @@ if cmd == "tag"
   br.tag(name)
 end
 
-if cmd == "mv" 
+if cmd == "mv"
   from = ARGV.shift
   to  = ARGV.shift
   br.mv(from,to)
@@ -206,25 +206,25 @@ Usage: svnbr <subcommand> [<option>] [<args>]
  <tag-name> : /tags/<tag-name>
 
  1. list branch
- > svnbr 
+ > svnbr
 
  2. switch <branch-name> or <tag-name> after craete /branches/<branch-name>(if missing)
  > svnbr sw <branch-name>
  > svnbr sw <tag-name>
  > svnbr sw <branch-name> --from-tag=VERSION-1.2.3
- 
+
  3. create /tags/<tag-name>(if missing)
  > svnbr tag <tag-name>
- 
+
  4. delete branch,tag
  > svnbr del <branch-name>
  > svnbr rm <branch-name>
  > svnbr del <tag-name>
  > svnbr rm <tag-name>
- 
+
  5. move branch
  > svnbr mv <old-branch-name> <new-branch-name>
- 
+
  6. view log
  > svnbr log <branch-name>
 
