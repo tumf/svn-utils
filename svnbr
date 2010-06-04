@@ -45,7 +45,10 @@ class Branch
   def rm name
     svn_exec("rm " << uri(name) << " -m 'remove branch #{name}'",true)
   end
-  def mv(from,to)
+  def mv(from,to,force = false)
+    raise "from: '#{from}' not found." if force ? !exists?(from) : !list.include?(from)
+    raise "to: '#{to}' already exists." if !force && exists?(to)
+    rm(to) if list.include?(to)
     svn_exec("mv " << uri(from) << " " << uri(to) << " -m 'move branch #{from} to #{to}'",true)
   end
   def log(name)
@@ -153,9 +156,12 @@ if cmd == "tag"
 end
 
 if cmd == "mv"
+  force = false
+  opt.on('--force') { force = true }
+  opt.parse!
   from = ARGV.shift
   to  = ARGV.shift
-  br.mv(from,to)
+  br.mv(from,to,force)
 end
 
 if cmd == "rm" or cmd == "del"
@@ -225,8 +231,9 @@ Usage: svnbr <subcommand> [<option>] [<args>]
  %. delete branch or tag
  > svnbr (del | rm) (<branch-name> | <tag-name>)
 
- %. move branch
+ %. move branch or tag (if force)
  > svnbr mv <old-branch-name> <new-branch-name>
+ > svnbr mv (--force | -f) <tag-name> <branch-name>
 
  %. view log
  > svnbr log [<branch-name> | <tag-name>]
