@@ -188,7 +188,7 @@ if cmd == "merge"
   br.merge_cs(name,r)  if mode == "c"
 end
 
-if !cmd or cmd == "list"
+if !cmd or cmd == "list" or cmd == "branches"
   br.list.each do |i|
     if i == br.current
       puts "* " << i
@@ -207,7 +207,7 @@ Usage: svnbr <subcommand> [<option>] [<args>]
  <tag-name>    :  /tags/<tag-name>
 
  %. list branches
- > svnbr [list]
+ > svnbr [list | branches]
 
  %. list tags
  > svnbr tags
