@@ -146,7 +146,11 @@ end
 
 if cmd == "tag"
   name = ARGV.shift
-  br.tag(name)
+  if name
+    br.tag(name)
+  else
+    cmd = "tags"
+  end
 end
 
 if cmd == "mv"
