@@ -42,6 +42,7 @@ class Branch
     REXML::XPath.each(doc,'//name/text()') do |name|
       @tags << name.to_s
     end
+    @tags
   end
 
   def rm name
@@ -197,7 +198,8 @@ end
 
 if cmd == "tags"
   br.tags.each do |i|
-    puts i
+    mark = (i == br.current) ? '* ' : '  '
+    puts mark << i
   end
 end
 
@@ -213,11 +215,8 @@ end
 
 if !cmd or cmd == "list" or cmd == "branches"
   br.list.each do |i|
-    if i == br.current
-      puts "* " << i
-    else
-      puts i
-    end
+    mark = (i == br.current) ? '* ' : '  '
+    puts mark << i
   end
 end
 
