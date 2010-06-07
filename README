@@ -1,0 +1,36 @@
+"svnbr" is a Subversion utility to operate branches.
+
+Usage: svnbr <subcommand> [<option>] [<args>]
+
+ <branch-name> :  /branches/<branch-name> or trunk
+ <tag-name>    :  /tags/<tag-name>
+
+ 1. list branches
+ > svnbr [list | branches]
+
+ 2. list tags
+ > svnbr tags
+
+ 3. switch to branch or tag after craete /branches/<branch-name> (if missing)
+ > svnbr sw <branch-name> [--from-tag=<tag-name>]
+ > svnbr sw <tag-name>
+
+ 4. create /tags/<tag-name>
+ > svnbr tag <tag-name>
+
+ 5. delete branch or tag
+ > svnbr (del | rm) (<branch-name> | <tag-name>)
+
+ 6. move branch or tag (if force)
+ > svnbr mv <old-branch-name> <new-branch-name>
+ > svnbr mv (--force | -f) <tag-name> <branch-name>
+
+ 7. view log
+ > svnbr log [<branch-name> | <tag-name>]
+
+ 8. merge
+ > svnbr merge (<branch-name> | <tag-name>) -c M[,N...]
+ > svnbr merge (<branch-name> | <tag-name>) -r M:N
+
+ 9. diff
+ > svnbr diff (<branch-name> | <tag-name>) <file>
