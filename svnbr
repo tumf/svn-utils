@@ -7,7 +7,6 @@
 =end
 
 require 'rubygems'
-require 'pp'
 require 'optparse'
 require 'rexml/document'
 
@@ -19,12 +18,13 @@ class Branch
     repo[:root]=repo[:url].gsub(/(\/trunk$|\/branches\/.+$|\/tags\/.+$)/,'')
     repo[var]
   end
+
   def current
     name(repo(:url))
   end
+
   def list
     return @branches if @branches
-
     @branches = Array.new
     root = repo(:root)
     doc = REXML::Document.new(svn("list #{root}/branches --xml"))
@@ -33,6 +33,7 @@ class Branch
     end
     @branches << "trunk"
   end
+
   def tags
     return @tags if @tags
     @tags = Array.new
@@ -42,24 +43,29 @@ class Branch
       @tags << name.to_s
     end
   end
+
   def rm name
     svn_exec("rm " << uri(name) << " -m 'remove branch #{name}'",true)
   end
+
   def mv(from,to,force = false)
     raise "from: '#{from}' not found." if force ? !exists?(from) : !list.include?(from)
     raise "to: '#{to}' already exists." if !force && exists?(to)
     rm(to) if list.include?(to)
     svn_exec("mv " << uri(from) << " " << uri(to) << " -m 'move branch #{from} to #{to}'",true)
   end
+
   def log(name)
     svn_exec("log " << uri(name) << " --stop-on-copy",true)
   end
+
   def name uri
     if /^\/trunk\/?/ =~ uri[repo(:root).length..-1]
       return "trunk"
     end
     return uri.gsub(repo(:root)+"/","").gsub(/(branches|tags)\//,"")
   end
+
   def uri name
     # existing url
     if name == "trunk"
@@ -74,15 +80,18 @@ class Branch
     # non-existing url
     repo(:root) << "/branches/" << name
   end
+
   def exists? name
     list.include?(name) || tags.include?(name)
   end
+
   def rootdir
     while uri(current) != repo(:url)
       FileUtils.cd('..')
       @doc = nil
     end
   end
+
   def switch name,tag_name = nil
     from = current
     from_uri = uri(current)
@@ -99,6 +108,7 @@ class Branch
       svn_exec("sw --ignore-externals " << uri(name),true)
     end
   end
+
   def tag tag_name
     raise "tag_name: '#{tag_name}' already exists." if exists?(tag_name)
 
@@ -108,35 +118,39 @@ class Branch
     svn_exec("cp -m 'make #{tag_name} tag from #{from_name}' %s %s" %
              [from_uri,tag_uri],true)
   end
+
   def merge_cs name,cs
     rootdir
     svn_exec("merge -c #{cs}  " << uri(name),true)
   end
+
   def merge_rev name,rev
     rootdir
     svn_exec("merge -r #{rev}  " << uri(name),true)
   end
+
   def diff name,file
     rootdir
     svn_exec("diff %s %s" % [uri(current),uri(name)],true)
   end
 
-
+private
   def svn param
     r = `svn #{param}`
     raise if $?.to_i > 0
     r
   end
+
   def svn_exec param,show = false
     puts "svn #{param}" if show
     system("svn #{param}")
   end
 end
+
 opt = OptionParser.new
-
 br = Branch.new
-
 cmd = ARGV.shift
+
 if cmd == "sw" or cmd == "switch"
   tag = nil
   opt.on('--from-tag=VAL') { |v| tag = v }
@@ -246,4 +260,3 @@ Usage: svnbr <subcommand> [<option>] [<args>]
  > svnbr diff (<branch-name> | <tag-name>) <file>
 EOF
 end
-
