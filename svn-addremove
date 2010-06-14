@@ -1,0 +1,4 @@
+#!/bin/bash
+#svn-addremove
+svn st $* |grep "^\!"|cut -d ' ' -f 8|xargs --no-run-if-empty svn rm 
+svn st $* |grep "^\?"|cut -d ' ' -f 8|xargs --no-run-if-empty svn add

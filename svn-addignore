@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+# $ svn-addignore hoge.txt foo.txt
+# $ svn-addignore '*.txt'
+ 
+files_list= Hash.new(){ |h, k| h[k]= [] }
+for path in ARGV
+   files_list[File.dirname(path)] << File.basename(path)
+end
+
+for dir, files in files_list
+  ignores= `svn propget svn:ignore #{dir}`.gsub(/\n\n/, "\n")
+   ignores << (files.join("\n")+"\n")
+  system("svn", "propset", "svn:ignore", ignores, dir)
+end
