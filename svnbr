@@ -110,13 +110,13 @@ class Branch
     end
   end
 
-  def tag tag_name
+  def tag tag_name, additional_message = nil
     raise "tag_name: '#{tag_name}' already exists." if exists?(tag_name)
 
     from_name = current
     from_uri = uri(current)
     tag_uri = repo(:root) << "/tags/" << tag_name
-    svn_exec("cp -m 'make #{tag_name} tag from #{from_name}' %s %s" %
+    svn_exec("cp -m 'make #{tag_name} tag from #{from_name}. #{additional_message}' %s %s" %
              [from_uri,tag_uri],true)
   end
 
@@ -163,8 +163,11 @@ end
 
 if cmd == "tag"
   name = ARGV.shift
+  additional_message = nil
+  opt.on('--additional-message=VAL') { |v| additional_message = v }
+  opt.parse!
   if name
-    br.tag(name)
+    br.tag(name,additional_message)
   else
     cmd = "tags"
   end
