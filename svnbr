@@ -93,7 +93,7 @@ class Branch
     end
   end
 
-  def switch name,tag_name = nil
+  def switch name,tag_name = nil, additional_message = nil
     from = current
     from_uri = uri(current)
     if tag_name
@@ -102,7 +102,7 @@ class Branch
       from_uri = repo(:root) << "/tags/" << tag_name
     end
 
-    svn_exec("cp -m 'make #{name} branch from #{from}' %s %s" %
+    svn_exec("cp -m 'make #{name} branch from #{from} #{additional_message}' %s %s" %
              [from_uri,uri(name)],true) unless exists?(name)
     unless current == name
       rootdir
@@ -155,10 +155,12 @@ cmd = ARGV.shift
 if cmd == "sw" or cmd == "switch"
   tag = nil
   opt.on('--from-tag=VAL') { |v| tag = v }
+  additional_message = nil
+  opt.on('--additional-message=VAL') { |v| additional_message = v }
   opt.parse!
 
   name = ARGV.shift
-  br.switch(name,tag)
+  br.switch(name,tag,additional_message)
 end
 
 if cmd == "tag"
